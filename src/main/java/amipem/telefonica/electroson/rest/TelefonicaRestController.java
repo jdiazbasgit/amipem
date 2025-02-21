@@ -40,6 +40,7 @@ public class TelefonicaRestController {
 
 				keyStore.load(fis, "".toCharArray());
 			} catch (Exception e) {
+				e.printStackTrace();
 				
 				return e.getMessage();
 			}
@@ -81,7 +82,7 @@ public class TelefonicaRestController {
 			salida=buffer.toString();
 
 		} catch (Exception e) {
-			
+			e.printStackTrace();
 			return e.getMessage();
 		}
 		return salida;
