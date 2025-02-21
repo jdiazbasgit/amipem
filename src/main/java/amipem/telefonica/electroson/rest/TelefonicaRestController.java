@@ -20,13 +20,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import amipem.telefonica.electroson.clases.ParamRecibidos;
 import amipem.telefonica.electroson.clases.TokenTelefonica;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 @RestController
 public class TelefonicaRestController {
 
 	@PostMapping("tokenTelefonica")
-	public String getTokenTelefonica (@RequestBody ParamRecibidos paramRecibidos) {
-		return  obtenerToken(paramRecibidos.getRutaPfx(), paramRecibidos.getRutaUrl(), paramRecibidos.getClientId(), paramRecibidos.getClientSecret());
+	public Object getTokenTelefonica (@RequestBody ParamRecibidos paramRecibidos) {
+	String entrada=obtenerToken(paramRecibidos.getRutaPfx(), paramRecibidos.getRutaUrl(), paramRecibidos.getClientId(), paramRecibidos.getClientSecret());
+	 JSONParser jsonTexto=new JSONParser();
+	 try {
+		return jsonTexto.parse(entrada);
+	} catch (ParseException e) {
+		// TODO Auto-generated catch block
+		return e.getMessage();
+	}
 		
 	}
 
@@ -35,7 +44,7 @@ public class TelefonicaRestController {
 		try {
 
 			KeyStore keyStore = KeyStore.getInstance("PKCS12");
-			File file= new File("electroson.b2b.pro2.pfx");
+			File file= new File(rutaPfx);
 			try (FileInputStream fis = new FileInputStream(file)) {
 
 				keyStore.load(fis, "".toCharArray());
