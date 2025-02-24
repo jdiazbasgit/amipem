@@ -3,8 +3,10 @@ package amipem.telefonica.electroson.rest;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyStore;
 
@@ -15,11 +17,9 @@ import javax.net.ssl.TrustManagerFactory;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import amipem.telefonica.electroson.clases.ParamRecibidos;
-import amipem.telefonica.electroson.clases.TokenTelefonica;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 
@@ -27,30 +27,57 @@ import net.minidev.json.parser.ParseException;
 public class TelefonicaRestController {
 
 	@PostMapping("tokenTelefonica")
-	public Object getTokenTelefonica (@RequestBody ParamRecibidos paramRecibidos) {
-	String entrada=obtenerToken(paramRecibidos.getRutaPfx(), paramRecibidos.getRutaUrl(), paramRecibidos.getClientId(), paramRecibidos.getClientSecret());
-	 JSONParser jsonTexto=new JSONParser();
-	 try {
-		return jsonTexto.parse(entrada);
-	} catch (ParseException e) {
-		// TODO Auto-generated catch block
-		return e.getMessage();
+	public Object getTokenTelefonica(@RequestBody ParamRecibidos paramRecibidos) {
+		String entrada = obtenerToken(paramRecibidos.getRutaPfx(), paramRecibidos.getRutaUrl(),
+				paramRecibidos.getClientId(), paramRecibidos.getClientSecret());
+		JSONParser jsonTexto = new JSONParser();
+		try {
+			return jsonTexto.parse(entrada);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			return e.getMessage();
+		}
+
 	}
-		
+
+	@PostMapping("informacionAMandar")
+	public Object getAlgo(String rutaUrl, String token, Object jsonData) {
+
+		try {
+			URL url = new URL(rutaUrl);
+			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			con.setRequestMethod("POST");
+			con.setRequestProperty("Content-Type", "application/json");
+			con.setRequestProperty("Authorization", "Bearer " + token); // Agrega el token al header
+			con.setRequestProperty("COCO.idProceso", "ELECTROSON");
+			con.setRequestProperty("COCO.idOrigen", "ELECTROSON");
+			// Enviar datos POST
+			con.setDoOutput(true);
+
+			try (OutputStream os = con.getOutputStream()) {
+				byte[] input = ((String) jsonData).getBytes("utf-8");
+				os.write(input, 0, input.length);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	public String obtenerToken(String rutaPfx, String rutaUrl, String clientId, String clientSecret) {
-		String salida=null;
+		String salida = null;
 		try {
 
 			KeyStore keyStore = KeyStore.getInstance("PKCS12");
-			File file= new File(rutaPfx);
+			File file = new File(rutaPfx);
 			try (FileInputStream fis = new FileInputStream(file)) {
 
 				keyStore.load(fis, "".toCharArray());
 			} catch (Exception e) {
 				e.printStackTrace();
-				
+
 				return e.getMessage();
 			}
 
@@ -74,8 +101,7 @@ public class TelefonicaRestController {
 			try (OutputStream os = conn.getOutputStream()) {
 				byte[] input = params.getBytes("utf-8");
 				os.write(input, 0, input.length);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				return e.getMessage();
 			}
 
@@ -88,13 +114,13 @@ public class TelefonicaRestController {
 			while (br.ready()) {
 				buffer.append(br.readLine());
 			}
-			salida=buffer.toString();
+			salida = buffer.toString();
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			return e.getMessage();
 		}
 		return salida;
-		
+
 	}
 }
