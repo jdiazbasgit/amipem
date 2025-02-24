@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class MaterialesResponse {
-	public MaterialesResponse materialMassiveRequest;
+	public MaterialResponse materialResponse;
 
 }
