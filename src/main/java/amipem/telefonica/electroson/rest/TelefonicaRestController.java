@@ -15,6 +15,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.http.ssl.SSLContextBuilder;
+import org.json.JSONObject;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,22 +28,22 @@ import net.minidev.json.parser.ParseException;
 public class TelefonicaRestController {
 
 	@PostMapping("tokenTelefonica")
-	public Object getTokenTelefonica(@RequestBody ParamRecibidos paramRecibidos) {
+	public Object getTokenTelefonica(@RequestBody ParamRecibidos paramRecibidos) throws ParseException {
 		String entrada = obtenerToken(paramRecibidos.getRutaPfx(), paramRecibidos.getRutaUrl(),
 				paramRecibidos.getClientId(), paramRecibidos.getClientSecret());
 		JSONParser jsonTexto = new JSONParser();
 		try {
 			return jsonTexto.parse(entrada);
-		} catch (ParseException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			return e.getMessage();
+			return jsonTexto.parse(e.getMessage());
 		}
 
 	}
 
 	@PostMapping("informacionAMandar")
 	public Object getAlgo(String rutaUrl, String token, Object jsonData) {
-
+		String salida = null;
 		try {
 			URL url = new URL(rutaUrl);
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -63,7 +64,7 @@ public class TelefonicaRestController {
 			e.printStackTrace();
 		}
 
-		return null;
+		return new JSONObject();
 	}
 
 	public String obtenerToken(String rutaPfx, String rutaUrl, String clientId, String clientSecret) {
