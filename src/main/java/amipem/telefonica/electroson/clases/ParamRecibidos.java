@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class ParamRecibidos {
 
-	private String rutaPfx, rutaUrl, clientId, clientSecret;
+	private String rutaPfx, rutaUrl, clientId, clientSecret,scope,certId;
 }

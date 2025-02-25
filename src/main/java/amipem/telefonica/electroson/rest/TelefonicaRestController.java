@@ -41,7 +41,7 @@ public class TelefonicaRestController {
 	@PostMapping("tokenTelefonica")
 	public Object getTokenTelefonica(@RequestBody ParamRecibidos paramRecibidos) throws ParseException {
 		String entrada = obtenerToken(paramRecibidos.getRutaPfx(), paramRecibidos.getRutaUrl(),
-				paramRecibidos.getClientId(), paramRecibidos.getClientSecret());
+				paramRecibidos.getClientId(), paramRecibidos.getClientSecret(),paramRecibidos.getScope(),paramRecibidos.getCertId());
 		@SuppressWarnings("deprecation")
 		JSONParser jsonParser = new JSONParser();
 		ObjectMapper mapper = new ObjectMapper();
@@ -117,7 +117,7 @@ public class TelefonicaRestController {
 		return jsonParser.parse(salida);
 	}
 
-	public String obtenerToken(String rutaPfx, String rutaUrl, String clientId, String clientSecret) {
+	public String obtenerToken(String rutaPfx, String rutaUrl, String clientId, String clientSecret,String scope,String cert_id) {
 		String salida = null;
 		try {
 
@@ -146,7 +146,7 @@ public class TelefonicaRestController {
 
 			// Configurar los parámetros del cuerpo de la solicitud
 			String params = "client_id=" + clientId + "&client_secret=" + clientSecret
-					+ "&scope=openid&grant_type=CERT";
+					+ "&scope="+scope+"&grant_type="+cert_id;
 
 			// Escribir parámetros en la solicitud
 			try (OutputStream os = conn.getOutputStream()) {
