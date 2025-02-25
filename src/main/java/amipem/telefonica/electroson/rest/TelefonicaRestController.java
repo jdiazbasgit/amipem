@@ -110,6 +110,18 @@ public class TelefonicaRestController {
 				System.out.println("Respuesta del servicio: " + response);
 				return response;
 			}
+			if (objetoSend.getMetodo().equals("POST") && objetoSend.getObjeto() == null) {
+				RestTemplate restTemplate = new RestTemplate();
+				HttpHeaders headers = new HttpHeaders();
+				Optional<HashMap<String, String>> optionalCabeceras = Optional.ofNullable(objetoSend.getCabeceras());
+				if (optionalCabeceras.isPresent()) {
+					objetoSend.getCabeceras().keySet().forEach(c -> headers.add(c, objetoSend.getCabeceras().get(c)));
+				}
+				HttpEntity<Object> request = new HttpEntity<>(null, headers);
+				Object response = restTemplate.postForObject(builder.toString(), request, Object.class);
+				System.out.println("Respuesta del servicio: " + response);
+				return response;
+			}
 
 		} catch (Exception e) { // TODO Auto-generated catch block e.printStackTrace(); }
 			return jsonParser.parse(e.getMessage());
