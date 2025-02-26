@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import amipem.telefonica.electroson.clases.ObjectSend;
 import amipem.telefonica.electroson.clases.ParamRecibidos;
-import amipem.telefonica.electroson.clases.TokenTelefonica;
 import lombok.Data;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -36,21 +35,15 @@ import net.minidev.json.parser.ParseException;
 @Data
 public class TelefonicaRestController {
 
-	private String token;
-
 	@PostMapping("tokenTelefonica")
 	public Object getTokenTelefonica(@RequestBody ParamRecibidos paramRecibidos) throws ParseException {
 		String entrada = obtenerToken(paramRecibidos.getRutaPfx(), paramRecibidos.getRutaUrl(),
-				paramRecibidos.getClientId(), paramRecibidos.getClientSecret(),paramRecibidos.getScope(),paramRecibidos.getCertId());
+				paramRecibidos.getClientId(), paramRecibidos.getClientSecret(), paramRecibidos.getScope(),
+				paramRecibidos.getCertId());
 		@SuppressWarnings("deprecation")
 		JSONParser jsonParser = new JSONParser();
 		ObjectMapper mapper = new ObjectMapper();
-		try {
-			TokenTelefonica tokenTelefonica = mapper.readValue(entrada, TokenTelefonica.class);
-			setToken(tokenTelefonica.getId_token());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+
 		try {
 			return jsonParser.parse(entrada);
 		} catch (Exception e) {
@@ -82,11 +75,22 @@ public class TelefonicaRestController {
 					builder.append("&" + p + "=" + objetoSend.getParametros().get(p));
 				});
 			}
+			HttpHeaders headers = new HttpHeaders();
+			Optional<HashMap<String, String>> optionalCabeceras = Optional.ofNullable(objetoSend.getCabeceras());
+			if (optionalCabeceras.isPresent()) {
+				objetoSend.getCabeceras().keySet().forEach(c -> headers.add(c, objetoSend.getCabeceras().get(c)));
+			}
 			if (objetoSend.getMetodo().equals("GET")) {
 				URL url = new URL(builder.toString());
 				HttpURLConnection con = (HttpURLConnection) url.openConnection();
 				con.setRequestMethod(objetoSend.getMetodo());
 				con.setRequestProperty("Content-Type", "application/json");
+				// HttpHeaders headers = new HttpHeaders();
+				Optional<HashMap<String, String>> optionalCabecerasp = Optional.ofNullable(objetoSend.getCabeceras());
+				if (optionalCabecerasp.isPresent()) {
+					objetoSend.getCabeceras().keySet()
+							.forEach(c -> con.setRequestProperty(c, objetoSend.getCabeceras().get(c)));
+				}
 
 				con.setDoOutput(true);
 				BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -100,11 +104,7 @@ public class TelefonicaRestController {
 			}
 			if (objetoSend.getMetodo().equals("POST") && objetoSend.getObjeto() != null) {
 				RestTemplate restTemplate = new RestTemplate();
-				HttpHeaders headers = new HttpHeaders();
-				Optional<HashMap<String, String>> optionalCabeceras = Optional.ofNullable(objetoSend.getCabeceras());
-				if (optionalCabeceras.isPresent()) {
-					objetoSend.getCabeceras().keySet().forEach(c -> headers.add(c, objetoSend.getCabeceras().get(c)));
-				}
+
 				HttpEntity<Object> request = new HttpEntity<>(objetoSend.getObjeto(), headers);
 				Object response = restTemplate.postForObject(builder.toString(), request, Object.class);
 				System.out.println("Respuesta del servicio: " + response);
@@ -112,11 +112,7 @@ public class TelefonicaRestController {
 			}
 			if (objetoSend.getMetodo().equals("POST") && objetoSend.getObjeto() == null) {
 				RestTemplate restTemplate = new RestTemplate();
-				HttpHeaders headers = new HttpHeaders();
-				Optional<HashMap<String, String>> optionalCabeceras = Optional.ofNullable(objetoSend.getCabeceras());
-				if (optionalCabeceras.isPresent()) {
-					objetoSend.getCabeceras().keySet().forEach(c -> headers.add(c, objetoSend.getCabeceras().get(c)));
-				}
+
 				HttpEntity<Object> request = new HttpEntity<>(null, headers);
 				Object response = restTemplate.postForObject(builder.toString(), request, Object.class);
 				System.out.println("Respuesta del servicio: " + response);
@@ -129,7 +125,8 @@ public class TelefonicaRestController {
 		return jsonParser.parse(salida);
 	}
 
-	public String obtenerToken(String rutaPfx, String rutaUrl, String clientId, String clientSecret,String scope,String cert_id) {
+	public String obtenerToken(String rutaPfx, String rutaUrl, String clientId, String clientSecret, String scope,
+			String cert_id) {
 		String salida = null;
 		try {
 
@@ -157,8 +154,8 @@ public class TelefonicaRestController {
 			conn.setDoOutput(true);
 
 			// Configurar los parámetros del cuerpo de la solicitud
-			String params = "client_id=" + clientId + "&client_secret=" + clientSecret
-					+ "&scope="+scope+"&grant_type="+cert_id;
+			String params = "client_id=" + clientId + "&client_secret=" + clientSecret + "&scope=" + scope
+					+ "&grant_type=" + cert_id;
 
 			// Escribir parámetros en la solicitud
 			try (OutputStream os = conn.getOutputStream()) {
