@@ -177,6 +177,7 @@ public class TelefonicaRestController {
 			e.printStackTrace();
 			return e.getMessage();
 		}
+		System.out.println("");
 		return salida;
 
 	}
